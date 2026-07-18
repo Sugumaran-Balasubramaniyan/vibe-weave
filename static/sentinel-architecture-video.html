@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>GlassBox Sentinel — Architecture Walkthrough</title>
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #060a16; color: #eff6ff; font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+    main { width: min(100vw, 1280px); }
+    #frame { position: relative; width: 100%; aspect-ratio: 16 / 9; overflow: hidden; background: radial-gradient(circle at 50% 0%, #182b53 0, #0b1124 46%, #060a16 100%); }
+    svg { display: block; width: 100%; height: 100%; }
+    .kicker { fill: #8bbcff; font-size: 15px; font-weight: 800; letter-spacing: 2px; }
+    .title { fill: #f8fbff; font-size: 35px; font-weight: 800; letter-spacing: -.7px; }
+    .sub { fill: #a9b9d7; font-size: 16px; }
+    .scene-label { fill: #7be6bf; font-size: 14px; font-weight: 800; letter-spacing: 1.5px; }
+    .node { stroke-width: 2; rx: 16; filter: url(#shadow); transition: opacity .35s ease, stroke .35s ease, fill .35s ease; }
+    .node-label { fill: #f5f9ff; font-size: 17px; font-weight: 750; text-anchor: middle; pointer-events: none; }
+    .node-sub { fill: #a7b8d6; font-size: 12px; text-anchor: middle; pointer-events: none; }
+    .edge { fill: none; stroke: #526a98; stroke-width: 3; stroke-linecap: round; marker-end: url(#arrow); opacity: .78; }
+    .edge.dashed { stroke-dasharray: 7 9; }
+    .boundary { fill: rgba(37, 86, 144, .14); stroke: #3b82c4; stroke-width: 2; stroke-dasharray: 9 8; rx: 28; }
+    .boundary-label { fill: #79b8ff; font-size: 12px; font-weight: 800; letter-spacing: 1px; }
+    .packet { filter: url(#glow); opacity: 0; }
+    .packet text { fill: #06111c; font-size: 11px; font-weight: 900; text-anchor: middle; }
+    .packet rect { rx: 11; }
+    .callout { opacity: 0; transform-origin: center; transition: opacity .35s ease; }
+    .callout-box { fill: #111d36; stroke: #4d76b4; stroke-width: 1.5; rx: 12; }
+    .callout-title { fill: #ffffff; font-size: 15px; font-weight: 800; }
+    .callout-copy { fill: #b7c9e9; font-size: 13px; }
+    .status-dot { filter: url(#glow); }
+    .muted { opacity: .23; }
+    .focus { stroke: #78f1c1 !important; fill: #183d3d !important; }
+    .danger { stroke: #ff887e !important; fill: #47242a !important; }
+    .active .callout { opacity: 1; }
+    .active .packet { opacity: 1; }
+    .active .edge.primary { stroke: #7be6bf; stroke-width: 4; }
+    .active .boundary { stroke: #78f1c1; }
+    .pulse { animation: pulse 1.4s ease-in-out infinite; }
+    .flow { animation: flow 1.8s ease-in-out infinite; }
+    .flow-slow { animation: flow 2.8s ease-in-out infinite; }
+    @keyframes pulse { 50% { transform: scale(1.08); opacity: .65; } }
+    @keyframes flow { 0% { opacity: 0; } 12%, 80% { opacity: 1; } 100% { opacity: 0; } }
+    #controls { display: flex; gap: 7px; align-items: center; justify-content: center; padding: 12px; background: #090f20; border-top: 1px solid #1e2d4c; }
+    button { appearance: none; border: 1px solid #314976; color: #bed1f4; background: #101b33; border-radius: 999px; min-width: 33px; height: 30px; cursor: pointer; font: 700 12px/1 Inter, sans-serif; }
+    button:hover, button[aria-current="true"] { color: #07141b; background: #7be6bf; border-color: #7be6bf; }
+    #sceneName { min-width: 245px; text-align: center; color: #a9b9d7; font-size: 13px; font-weight: 700; }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; } }
+  </style>
+</head>
+<body>
+  <main aria-label="GlassBox Sentinel architecture walkthrough">
+    <div id="frame">
+      <svg viewBox="0 0 1280 720" role="img" aria-labelledby="diagram-title diagram-desc">
+        <title id="diagram-title">GlassBox Sentinel architecture walkthrough</title>
+        <desc id="diagram-desc">A seven-scene visual explanation of how Mistral Vibe routes agent actions through GlassBox Sentinel, which records evidence, isolates risky work, and verifies a safe continuation.</desc>
+        <defs>
+          <filter id="shadow" x="-30%" y="-30%" width="160%" height="180%"><feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#000" flood-opacity=".34"/></filter>
+          <filter id="glow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#6e86b5"/></marker>
+          <linearGradient id="sentinelFill" x1="0" x2="1"><stop stop-color="#153d54"/><stop offset="1" stop-color="#1d285c"/></linearGradient>
+        </defs>
+        <text x="64" y="58" class="kicker">GLASSBOX SENTINEL / ARCHITECTURE WALKTHROUGH</text>
+        <text x="64" y="102" class="title">Runtime safety without breaking the coding flow</text>
+        <text x="64" y="132" class="sub">Watch the same agent task gain evidence, containment and a verified continuation.</text>
+        <text id="sceneLabel" x="1216" y="59" text-anchor="end" class="scene-label">SCENE 1 OF 7</text>
+
+        <rect x="39" y="178" width="1198" height="419" class="boundary"/>
+        <text x="66" y="205" class="boundary-label">PRIVATE SENTINEL EXECUTION BOUNDARY</text>
+
+        <path id="edge-vibe-hook" class="edge primary" d="M256 350 H350"/>
+        <path id="edge-hook-sentinel" class="edge primary" d="M486 350 H570"/>
+        <path id="edge-sentinel-worktree" class="edge primary" d="M750 350 H842"/>
+        <path id="edge-worktree-verify" class="edge primary" d="M1001 350 H1080"/>
+        <path id="edge-sentinel-evidence" class="edge dashed" d="M660 425 V505 H462"/>
+        <path id="edge-verify-continue" class="edge dashed" d="M1148 426 V505 H1012"/>
+
+        <rect id="vibe" class="node" x="92" y="296" width="164" height="108" fill="#162647" stroke="#668bc7"/>
+        <text x="174" y="340" class="node-label">Mistral Vibe</text><text x="174" y="364" class="node-sub">coding agent</text>
+        <rect id="hook" class="node" x="350" y="296" width="136" height="108" fill="#1b2d50" stroke="#668bc7"/>
+        <text x="418" y="340" class="node-label">Hook</text><text x="418" y="364" class="node-sub">intent envelope</text>
+        <rect id="sentinel" class="node" x="570" y="276" width="180" height="148" fill="url(#sentinelFill)" stroke="#7be6bf"/>
+        <circle cx="660" cy="311" r="9" fill="#7be6bf" class="status-dot pulse"/><text x="660" y="354" class="node-label">GlassBox</text><text x="660" y="377" class="node-label">Sentinel</text><text x="660" y="402" class="node-sub">policy + evidence gate</text>
+        <rect id="worktree" class="node" x="842" y="296" width="159" height="108" fill="#1e3142" stroke="#6cbfa0"/>
+        <text x="921" y="340" class="node-label">Isolated</text><text x="921" y="363" class="node-label">worktree</text><text x="921" y="387" class="node-sub">disposable proof</text>
+        <rect id="verify" class="node" x="1080" y="296" width="115" height="108" fill="#203947" stroke="#74d5ad"/>
+        <text x="1137" y="340" class="node-label">Verify</text><text x="1137" y="364" class="node-sub">policy test</text>
+        <rect id="evidence" class="node" x="283" y="501" width="179" height="71" fill="#20294a" stroke="#7492d5"/>
+        <text x="372" y="534" class="node-label">Evidence ledger</text><text x="372" y="556" class="node-sub">incident + reproducer</text>
+        <rect id="continuation" class="node" x="1012" y="501" width="183" height="71" fill="#184038" stroke="#7be6bf"/>
+        <text x="1103" y="534" class="node-label">Continuation</text><text x="1103" y="556" class="node-sub">safe task output</text>
+
+        <g id="packet-intent" class="packet"><rect width="126" height="28" fill="#9fc9ff"/><text x="63" y="19">tool intent</text></g>
+        <g id="packet-risk" class="packet"><rect width="150" height="28" fill="#ff9b8f"/><text x="75" y="19">untrusted input</text></g>
+        <g id="packet-proof" class="packet"><rect width="128" height="28" fill="#7be6bf"/><text x="64" y="19">verified action</text></g>
+
+        <g id="callout" class="callout">
+          <rect x="66" y="624" width="1148" height="56" class="callout-box"/>
+          <text id="calloutTitle" x="88" y="649" class="callout-title">Agent intent enters the Sentinel boundary</text>
+          <text id="calloutCopy" x="88" y="670" class="callout-copy">The hook supplies an observable action envelope before work is allowed to affect the project.</text>
+        </g>
+      </svg>
+    </div>
+    <nav id="controls" aria-label="Architecture walkthrough scenes">
+      <button id="previous" type="button" aria-label="Previous scene">←</button>
+      <button data-scene="1" type="button">1</button><button data-scene="2" type="button">2</button><button data-scene="3" type="button">3</button><button data-scene="4" type="button">4</button><button data-scene="5" type="button">5</button><button data-scene="6" type="button">6</button><button data-scene="7" type="button">7</button>
+      <button id="next" type="button" aria-label="Next scene">→</button>
+      <span id="sceneName" aria-live="polite"></span>
+    </nav>
+  </main>
+  <script>
+    (() => {
+      const scenes = [
+        { name: 'Observe the agent intent', title: '1. Observe the agent intent', copy: 'Mistral Vibe emits a small intent envelope through its hook—no opaque orchestration fork required.', on: ['vibe','hook','sentinel','edge-vibe-hook','edge-hook-sentinel'], packet: ['packet-intent', 'translate(238 336)', 'flow'], muted: ['worktree','verify','evidence','continuation'] },
+        { name: 'Classify trust boundaries', title: '2. Classify the risk at the boundary', copy: 'Sentinel separates trusted task instructions from untrusted repository content before an action is executed.', on: ['hook','sentinel','edge-hook-sentinel'], danger: ['sentinel'], packet: ['packet-risk', 'translate(478 336)', 'flow'], muted: ['worktree','verify','evidence','continuation'] },
+        { name: 'Contain a risky action', title: '3. Contain the action, not the whole agent', copy: 'A risky instruction is paused at a visible policy gate. The coding loop stays useful; unsafe scope does not proceed.', on: ['sentinel','evidence','edge-sentinel-evidence'], danger: ['sentinel'], packet: ['packet-risk', 'translate(587 434)', 'flow-slow'], muted: ['vibe','hook','worktree','verify','continuation'] },
+        { name: 'Compile an incident', title: '4. Compile an incident into evidence', copy: 'Sentinel preserves the exact boundary, minimal reproducer and the policy repair as reviewable evidence.', on: ['sentinel','evidence','edge-sentinel-evidence'], packet: ['packet-intent', 'translate(486 491)', 'flow'], muted: ['vibe','hook','worktree','verify','continuation'] },
+        { name: 'Prove in isolation', title: '5. Prove the repair in an isolated worktree', copy: 'The repair runs in a disposable Git worktree, so verification produces a real artifact without touching the project branch.', on: ['sentinel','worktree','edge-sentinel-worktree'], packet: ['packet-proof', 'translate(748 336)', 'flow'], muted: ['vibe','hook','verify','evidence','continuation'] },
+        { name: 'Verify safe and useful', title: '6. Verify both sides of the policy', copy: 'A good repair blocks the risky request and lets the legitimate coding task complete. Sentinel shows both results.', on: ['worktree','verify','continuation','edge-worktree-verify','edge-verify-continue'], packet: ['packet-proof', 'translate(991 491)', 'flow'], muted: ['vibe','hook','sentinel','evidence'] },
+        { name: 'Continue with proof', title: '7. Return a verified continuation to Vibe', copy: 'Mistral Vibe keeps its native coding workflow. GlassBox Sentinel adds runtime evidence, contained recovery and audit-ready proof.', on: ['vibe','hook','sentinel','worktree','verify','continuation','evidence','edge-vibe-hook','edge-hook-sentinel','edge-sentinel-worktree','edge-worktree-verify','edge-sentinel-evidence','edge-verify-continue'], packet: ['packet-proof', 'translate(1011 476)', 'flow'], muted: [] }
+      ];
+      const ids = ['vibe','hook','sentinel','worktree','verify','evidence','continuation','edge-vibe-hook','edge-hook-sentinel','edge-sentinel-worktree','edge-worktree-verify','edge-sentinel-evidence','edge-verify-continue'];
+      const packets = ['packet-intent','packet-risk','packet-proof'];
+      const callout = document.getElementById('callout');
+      let scene = Math.max(1, Math.min(7, Number(new URLSearchParams(location.search).get('scene')) || 1));
+      function render() {
+        const state = scenes[scene - 1];
+        ids.forEach(id => document.getElementById(id).classList.remove('muted','focus','danger'));
+        packets.forEach(id => { const el = document.getElementById(id); el.className.baseVal = 'packet'; el.removeAttribute('transform'); });
+        ids.filter(id => !state.on.includes(id)).forEach(id => document.getElementById(id).classList.add('muted'));
+        state.on.filter(id => !id.startsWith('edge')).forEach(id => document.getElementById(id).classList.add('focus'));
+        (state.danger || []).forEach(id => document.getElementById(id).classList.add('danger'));
+        const packet = document.getElementById(state.packet[0]); packet.setAttribute('transform', state.packet[1]); packet.classList.add(state.packet[2]);
+        document.getElementById('sceneLabel').textContent = `SCENE ${scene} OF 7`;
+        document.getElementById('calloutTitle').textContent = state.title;
+        document.getElementById('calloutCopy').textContent = state.copy;
+        document.getElementById('sceneName').textContent = state.name;
+        document.querySelectorAll('[data-scene]').forEach(button => button.setAttribute('aria-current', button.dataset.scene === String(scene) ? 'true' : 'false'));
+        callout.classList.remove('active'); requestAnimationFrame(() => callout.classList.add('active'));
+        history.replaceState(null, '', `${location.pathname}?scene=${scene}`);
+      }
+      document.querySelectorAll('[data-scene]').forEach(button => button.addEventListener('click', () => { scene = Number(button.dataset.scene); render(); }));
+      document.getElementById('previous').addEventListener('click', () => { scene = scene === 1 ? 7 : scene - 1; render(); });
+      document.getElementById('next').addEventListener('click', () => { scene = scene === 7 ? 1 : scene + 1; render(); });
+      render();
+    })();
+  </script>
+</body>
+</html>

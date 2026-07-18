@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Vibe Weave aligns Mistral Vibe subagents on a shared definition of done before they edit code.">
+  <title>Vibe Weave | Semantic coordination for Mistral Vibe</title>
+  <link rel="stylesheet" href="/static/weave-v3.css?v=weave-v3">
+</head>
+<body>
+  <div id="app" class="weave-app">
+    <header class="site-header">
+      <a class="brand" href="#overview" aria-label="Vibe Weave home"><span class="brand-mark">W</span> Vibe Weave</a>
+      <p class="header-note">Mistral Vibe Hackathon</p>
+    </header>
+    <nav class="tab-nav" aria-label="Vibe Weave sections" role="tablist">
+      <button id="tab-overview" class="tab-button" type="button" role="tab" data-tab="overview" aria-controls="panel-overview" aria-selected="true">Overview</button>
+      <button id="tab-proof" class="tab-button" type="button" role="tab" data-tab="proof" aria-controls="panel-proof" aria-selected="false">Live proof</button>
+      <button id="tab-architecture" class="tab-button" type="button" role="tab" data-tab="architecture" aria-controls="panel-architecture" aria-selected="false">Architecture</button>
+      <button id="tab-vibe" class="tab-button" type="button" role="tab" data-tab="vibe" aria-controls="panel-vibe" aria-selected="false">Mistral Vibe</button>
+      <button id="tab-demo" class="tab-button" type="button" role="tab" data-tab="demo" aria-controls="panel-demo" aria-selected="false">Demo script</button>
+    </nav>
+    <main>
+      <section id="panel-overview" class="tab-panel" role="tabpanel" aria-labelledby="tab-overview">
+        <div class="hero">
+          <div>
+            <p class="eyebrow">Semantic coordination for coding subagents</p>
+            <h1>Parallel agents should agree before they edit.</h1>
+            <p class="lede">Vibe Weave gives Mistral Vibe a shared definition of done. Agents declare their assumptions, interface contracts, file scope, and proof—then Weave detects conflicts before a plausible-looking patch set diverges.</p>
+            <div class="actions"><button class="primary" type="button" data-open-tab="proof">Run the live proof</button><button class="secondary" type="button" data-open-tab="architecture">See how it works</button></div>
+          </div>
+          <aside class="hero-proof" aria-label="Coordination outcome">
+            <span class="signal">CONFLICT DETECTED</span>
+            <p class="question">Who may export invoices?</p>
+            <div class="answer"><span>Decision contract</span><strong>admin_only</strong></div>
+            <p class="small">One decision aligns frontend, backend, and tests before implementation starts.</p>
+          </aside>
+        </div>
+        <section class="explainer-video" aria-labelledby="explainer-video-title">
+          <div><p class="eyebrow">46-second narrated product pitch</p><h2 id="explainer-video-title">The whole idea in one simple story.</h2><p>Three agents plan the same feature. They disagree on one important meaning. Vibe Weave gets one answer before any code edits begin.</p><ol class="simple-story"><li><span>1</span><div><strong>Say the plan.</strong><br>Each agent states what it assumes.</div></li><li><span>2</span><div><strong>Spot the disagreement.</strong><br>Weave finds two meanings for the same feature.</div></li><li><span>3</span><div><strong>Agree, then build.</strong><br>One decision guides every agent and its proof.</div></li></ol><p class="audio-note">Narrated video — turn sound on for the explanation.</p></div>
+          <video controls preload="metadata" playsinline aria-describedby="explainer-video-title"><source src="/static/vibe-weave-explainer.mp4?v=weave-v2" type="video/mp4">Your browser does not support this video. <a href="/static/vibe-weave-explainer.mp4">Open the narrated explainer.</a></video>
+        </section>
+        <div class="value-grid">
+          <article><span>01</span><h2>Make intent inspectable</h2><p>Each role proposes a compact Change Contract instead of burying assumptions inside prompts and branches.</p></article>
+          <article><span>02</span><h2>Resolve the right question</h2><p>Weave ranks contradictions by downstream impact and asks only the decision that unblocks the most work.</p></article>
+          <article><span>03</span><h2>Prove convergence</h2><p>A Decision Contract, scoped worktrees, and explicit proofs make coordination reviewable after the run.</p></article>
+        </div>
+      </section>
+
+      <section id="panel-proof" class="tab-panel" role="tabpanel" aria-labelledby="tab-proof" hidden>
+        <div class="section-intro"><p class="eyebrow">A simple, safe example</p><h1>Make one shared decision before agents write code.</h1><p>Example: three agents are building invoice export. This demo uses temporary, real disposable Git worktrees only; it never starts a Vibe session or touches your project.</p></div>
+        <section class="proof-console" aria-live="polite">
+          <div class="contract-grid">
+            <article class="contract-card" data-contract="frontend"><p class="role">FRONTEND</p><h2>Invoice export UI</h2><code>authorization = authenticated_user</code><small>Proof: hide export for non-admin</small></article>
+            <article class="contract-card" data-contract="backend"><p class="role">BACKEND</p><h2>Export endpoint</h2><code>authorization = admin_only</code><small>Proof: non-admin receives 403</small></article>
+            <article class="contract-card" data-contract="tests"><p class="role">TESTS</p><h2>Regression contract</h2><code>authorization = admin_only</code><small>Proof: admin receives 200</small></article>
+          </div>
+          <div class="conflict-panel"><div><p class="eyebrow">The one question everyone must agree on</p><h2 id="weave-question">Who may export invoices?</h2><p id="weave-status">The agents disagree. Managed edits remain blocked until this contract is resolved.</p></div><div class="decision-actions"><button class="decision" type="button" data-decision="authenticated_user">Any authenticated user</button><button class="decision selected" type="button" data-decision="admin_only">Admins only</button><button id="run-weave-proof" class="primary" type="button">Resolve &amp; prove</button></div></div>
+          <section class="proof-diagram" aria-label="Step-by-step Vibe Weave coordination diagram">
+            <article class="diagram-step complete" data-diagram-step="contracts"><span>STEP 1</span><strong>Agents publish intent</strong><small>Role, files, decision, interface, proof.</small></article>
+            <article class="diagram-step active" data-diagram-step="conflict"><span>STEP 2</span><strong>Weave compares meaning</strong><small>It finds incompatible authorization assumptions.</small></article>
+            <article class="diagram-step" data-diagram-step="decision"><span>STEP 3</span><strong>One question resolves it</strong><small>Decision Contract becomes shared truth.</small></article>
+            <article class="diagram-step" data-diagram-step="worktrees"><span>STEP 4</span><strong>Scoped work begins</strong><small>Vibe agents edit isolated Git worktrees.</small></article>
+            <article class="diagram-step" data-diagram-step="verified"><span>STEP 5</span><strong>Joined proof is checked</strong><small>Unsafe or inconsistent routes fail visibly.</small></article>
+          </section>
+          <ol class="proof-flow" aria-label="Vibe Weave proof stages">
+            <li data-weave-stage="contracts"><span>1</span><strong>Contracts proposed</strong><small>Three scopes, one contradiction</small></li>
+            <li data-weave-stage="conflict"><span>2</span><strong>Conflict ranked</strong><small>Authorization affects every role</small></li>
+            <li data-weave-stage="decision"><span>3</span><strong>Decision recorded</strong><small>Waiting for your answer</small></li>
+            <li data-weave-stage="worktrees"><span>4</span><strong>Worktrees created</strong><small>Waiting for proof</small></li>
+            <li data-weave-stage="verified"><span>5</span><strong>Convergence verified</strong><small>Waiting for proof</small></li>
+          </ol>
+          <section id="weave-evidence" class="evidence" hidden><div><p class="eyebrow">Inspectable evidence</p><h2>Decision Contract</h2><pre id="decision-contract"></pre></div><div><p class="eyebrow">Verifier result</p><h2>Execution proof</h2><ul id="verification-result"></ul></div></section>
+        </section>
+      </section>
+
+      <section id="panel-architecture" class="tab-panel" role="tabpanel" aria-labelledby="tab-architecture" hidden>
+        <div class="section-intro"><p class="eyebrow">A simple agreement layer</p><h1>Vibe executes. Weave aligns.</h1><p>Weave sits before managed implementation, turning the implicit assumptions between specialists into explicit, testable artifacts.</p></div>
+        <section class="architecture" aria-label="Vibe Weave architecture"><article><p class="plane">01 · MISTRAL VIBE</p><h2>Delegates roles</h2><p>Vibe selects agents and gives them work in the normal way.</p></article><div class="arrow">↓<span>Change Contracts</span></div><article class="weave-plane"><p class="plane">02 · VIBE WEAVE</p><h2>Finds mismatched assumptions</h2><p>Compares decisions, public interfaces, file scope, and proofs. It ranks contradictions and persists the single answer that resolves them.</p><div class="chips"><span>Conflict ranking</span><span>Decision Contract</span><span>Pre-tool guard</span></div></article><div class="arrow">↓<span>resolved scope</span></div><article><p class="plane">03 · ISOLATED IMPLEMENTATION</p><h2>Proves the joined result</h2><p>Roles work in isolated Git worktrees and return evidence for the decision they share.</p></article></section>
+        <section class="walkthrough"><div><p class="eyebrow">Visual walkthrough</p><h2>From disagreement to converged work</h2><p>Press play to trace the coordination sequence used in the live proof.</p><button id="play-walkthrough" class="secondary" type="button">Play walkthrough</button></div><ol id="walkthrough-steps"><li>Three roles publish Change Contracts.</li><li>Weave finds contradictory authorization assumptions.</li><li>It asks the one question that changes every implementation.</li><li>A Decision Contract unblocks scoped worktrees.</li><li>Proofs verify the system converged.</li></ol></section>
+      </section>
+
+      <section id="panel-vibe" class="tab-panel" role="tabpanel" aria-labelledby="tab-vibe" hidden>
+        <div class="section-intro"><p class="eyebrow">Built as a Vibe-native companion</p><h1>How Vibe and Weave work together.</h1><p>Vibe already orchestrates capable agents. Weave makes their cross-agent agreements durable, enforceable, and demonstrable.</p></div>
+        <div class="comparison"><div class="comparison-head"><strong>Mistral Vibe</strong><strong>Vibe Weave addition</strong></div><div><span>Delegates work to agents</span><span>Requires a Change Contract before managed parallel edits</span></div><div><span>Executes tools and subagents</span><span>Detects incompatible assumptions across those roles</span></div><div><span>Can use hooks at tool boundaries</span><span>Pre-tool hook holds writes while a known conflict is unresolved</span></div><div><span>Produces implementation output</span><span>Leaves a Decision Contract and proof report for review</span></div></div>
+        <section class="install-card"><p class="eyebrow">Project-local integration</p><h2>Three checked-in assets</h2><pre>.vibe/agents/weave-coordinator.toml
+.vibe/skills/vibe-weave/SKILL.md
+.vibe/hooks.toml  →  python3 -m vibe_weave guard</pre><p>It is deliberately transparent without unresolved state. It blocks managed write tools only while a recorded semantic conflict remains open.</p></section>
+      </section>
+
+      <section id="panel-demo" class="tab-panel" role="tabpanel" aria-labelledby="tab-demo" hidden>
+        <div class="section-intro"><p class="eyebrow">Judge-ready, three-minute walkthrough</p><h1>Tell a coordination story, then prove it.</h1></div>
+        <ol class="demo-steps"><li><strong>0:00 — Problem.</strong> “Parallel coding agents often produce patches that are locally correct but mutually incompatible.”</li><li><strong>0:20 — Contracts.</strong> Open Live proof and show frontend, backend, and tests disagree on authorization.</li><li><strong>0:45 — Decision.</strong> “Weave asks only the highest-impact question: who may export invoices?” Choose <code>admin_only</code>.</li><li><strong>1:15 — Proof.</strong> Run the browser proof. Show the Decision Contract, real worktree paths, and passed verification.</li><li><strong>2:00 — Integration.</strong> Open Mistral Vibe. “Vibe keeps orchestration; Weave supplies a shared definition of done and pre-tool enforcement.”</li><li><strong>2:35 — Close.</strong> “The output is not just code: it is code plus the decision and evidence that made parallel work coherent.”</li></ol>
+      </section>
+    </main>
+  </div>
+  <script src="/static/weave-v2.js?v=weave-v2"></script>
+</body>
+</html>

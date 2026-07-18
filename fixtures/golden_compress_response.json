@@ -1,0 +1,57 @@
+{
+  "save_state": {
+    "run_id": "PLACEHOLDER",
+    "status": "braked",
+    "goal": "Migrate database and expose /users API",
+    "worked": [
+      "Created initial FastAPI app",
+      "Added users model"
+    ],
+    "failed": [
+      "DB migration loops on relation_exists"
+    ],
+    "last_good_checkpoint": "step-002",
+    "blocked_on": "Conflicting migration; need drop or revise revision",
+    "recommended_next_actions": [
+      "Don't recreate users; use alter table add column email only",
+      "Inspect existing schema",
+      "Generate additive migration only"
+    ],
+    "context_summary": "Scaffold succeeded. Migration repeatedly fails with relation_exists after three identical attempts."
+  },
+  "decision_tree": {
+    "root": {
+      "id": "n0",
+      "label": "Goal: ship users API",
+      "kind": "goal",
+      "children": [
+        {
+          "id": "n1",
+          "label": "Scaffold app",
+          "kind": "success",
+          "children": []
+        },
+        {
+          "id": "n2",
+          "label": "DB migration",
+          "kind": "failure",
+          "children": [
+            {
+              "id": "n3",
+              "label": "Retry same migration (loop ×3)",
+              "kind": "loop",
+              "children": []
+            },
+            {
+              "id": "n4",
+              "label": "Human override required",
+              "kind": "brake",
+              "children": []
+            }
+          ]
+        }
+      ]
+    },
+    "highlight_path": ["n0", "n2", "n3", "n4"]
+  }
+}

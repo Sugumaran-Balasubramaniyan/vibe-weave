@@ -1,0 +1,7 @@
+display_name = "Weave Coordinator"
+description = "Coordinates delegated Vibe work through Change Contracts before editing."
+safety = "neutral"
+
+[tools]
+ask_user_question = { permission = "ask" }
+task = { permission = "ask" }

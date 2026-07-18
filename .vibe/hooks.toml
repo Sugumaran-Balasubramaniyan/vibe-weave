@@ -1,0 +1,29 @@
+# Glass Box observes every Vibe tool boundary in this trusted project.
+# Vibe executes hook commands from the project root and sends JSON on stdin.
+
+[[hooks]]
+name = "glassbox-pre-tool"
+type = "pre_tool"
+match = "*"
+command = "python3 scripts/glassbox_vibe_hook.py pre_tool"
+timeout = 3.0
+strict = false
+description = "Report Vibe tool intent and enforce a Glass Box brake when present."
+
+[[hooks]]
+name = "glassbox-post-tool"
+type = "post_tool"
+match = "*"
+command = "python3 scripts/glassbox_vibe_hook.py post_tool"
+timeout = 3.0
+strict = false
+description = "Report redacted Vibe tool outcomes to Glass Box."
+
+[[hooks]]
+name = "vibe-weave-guard"
+type = "pre_tool"
+match = "re:^(write_file|search_replace|bash)$"
+command = "python3 -m vibe_weave guard"
+timeout = 3.0
+strict = false
+description = "Block managed edits until Vibe Weave resolves semantic conflicts."

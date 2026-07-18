@@ -1,0 +1,27 @@
+# Entropy / brake defaults — load into config/settings.py
+# Operational health score (not Shannon entropy). Tune only here.
+
+window_w: 5                 # W: lookback window for densities
+consecutive_error_n: 3      # N: hard brake if same error_signature N times in a row
+no_progress_p: 4            # P: steps without ok+files_touched progress
+max_steps: 20
+threshold: 0.65
+
+weights:
+  repeat_error_density: 0.40
+  action_loop_density: 0.25
+  no_progress: 0.25
+  step_budget_pressure: 0.10
+  # observer_model: 0.15   # optional; if enabled, add then clamp01
+
+step_delay_ms_min: 400
+step_delay_ms_max: 800
+
+# score = clamp01(
+#   0.40 * repeat_error_density +
+#   0.25 * action_loop_density +
+#   0.25 * no_progress +
+#   0.10 * step_budget_pressure
+# )
+#
+# Brake if score >= threshold OR consecutive identical error_signature >= N

@@ -1,0 +1,25 @@
+# Implementation artifacts (when agent starts coding)
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.env
+*.egg-info/
+dist/
+build/
+.DS_Store
+.idea/
+.vscode/
+.superpowers/
+*.log
+.coverage
+htmlcov/
+
+# Local demo recordings
+*.mp4
+*.mov
+!static/vibe-weave-explainer.mp4
+*.orig

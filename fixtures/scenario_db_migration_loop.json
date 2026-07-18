@@ -1,0 +1,139 @@
+{
+  "id": "db_migration_loop",
+  "description": "Default demo: scaffold succeeds, migration loops, brake, human override, recovery.",
+  "goal": "Add a users table migration and expose GET /users.",
+  "default_override_text": "Use the evidence-backed additive migration recovery.",
+  "recovery_options": [
+    {
+      "id": "additive_email_migration",
+      "label": "Use an additive email migration",
+      "description": "Preserve the existing users table and add only the missing email column.",
+      "authorizing": true,
+      "evidence": ["db.migration.relation_exists repeated three times", "Existing users table must be preserved"]
+    },
+    {
+      "id": "drop_and_recreate_users",
+      "label": "Drop and recreate users",
+      "description": "Unsafe: can destroy existing user data and is not supported by the observed evidence.",
+      "authorizing": false,
+      "evidence": ["No evidence authorizes destructive schema replacement"]
+    },
+    {
+      "id": "retry_same_migration",
+      "label": "Retry the unchanged migration",
+      "description": "Unsupported: repeats the exact failure signature that triggered the brake.",
+      "authorizing": false,
+      "evidence": ["db.migration.relation_exists repeated three times"]
+    }
+  ],
+  "steps": [
+    {
+      "index": 0,
+      "type": "thinking",
+      "title": "Plan approach",
+      "action": "plan",
+      "input_summary": "Ship users API with migration",
+      "output_summary": "Will scaffold app, add model, run alembic",
+      "status": "ok",
+      "error_signature": null,
+      "files_touched": []
+    },
+    {
+      "index": 1,
+      "type": "write_file",
+      "title": "Create app.py",
+      "action": "write_file",
+      "input_summary": "app.py",
+      "output_summary": "wrote FastAPI skeleton",
+      "status": "ok",
+      "error_signature": null,
+      "files_touched": ["app.py"]
+    },
+    {
+      "index": 2,
+      "type": "write_file",
+      "title": "Create models.py",
+      "action": "write_file",
+      "input_summary": "models.py",
+      "output_summary": "wrote User model",
+      "status": "ok",
+      "error_signature": null,
+      "files_touched": ["models.py"]
+    },
+    {
+      "index": 3,
+      "type": "tool_call",
+      "title": "Run database migration",
+      "action": "shell",
+      "input_summary": "alembic upgrade head",
+      "output_summary": "ERROR: relation \"users\" already exists",
+      "status": "error",
+      "error_signature": "db.migration.relation_exists",
+      "files_touched": ["migrations/004_users.py"]
+    },
+    {
+      "index": 4,
+      "type": "tool_call",
+      "title": "Retry database migration",
+      "action": "shell",
+      "input_summary": "alembic upgrade head",
+      "output_summary": "ERROR: relation \"users\" already exists",
+      "status": "error",
+      "error_signature": "db.migration.relation_exists",
+      "files_touched": ["migrations/004_users.py"]
+    },
+    {
+      "index": 5,
+      "type": "tool_call",
+      "title": "Retry database migration again",
+      "action": "shell",
+      "input_summary": "alembic upgrade head",
+      "output_summary": "ERROR: relation \"users\" already exists",
+      "status": "error",
+      "error_signature": "db.migration.relation_exists",
+      "files_touched": ["migrations/004_users.py"]
+    }
+  ],
+  "recovery_steps_by_choice": {
+    "additive_email_migration": [
+    {
+      "index": 6,
+      "type": "thinking",
+      "title": "Apply approved additive migration",
+      "action": "plan",
+      "input_summary": "Approved recovery: {{recovery_option_label}}. Operator rationale: {{operator_rationale}}",
+      "output_summary": "Will use additive alter migration only",
+      "status": "ok",
+      "error_signature": null,
+      "files_touched": []
+    },
+    {
+      "index": 7,
+      "type": "tool_call",
+      "title": "Alter users table (add email)",
+      "action": "shell",
+      "input_summary": "alembic revision --autogenerate && alembic upgrade head",
+      "output_summary": "OK: added column users.email",
+      "status": "ok",
+      "error_signature": null,
+      "files_touched": ["migrations/005_add_email.py"]
+    },
+    {
+      "index": 8,
+      "type": "write_file",
+      "title": "Add GET /users route",
+      "action": "write_file",
+      "input_summary": "app.py routes",
+      "output_summary": "OK: GET /users registered",
+      "status": "ok",
+      "error_signature": null,
+      "files_touched": ["app.py"]
+    }
+    ]
+  },
+  "notes": [
+    "Brake expected after step index 5 (third consecutive relation_exists).",
+    "Do not auto-continue recovery until override is accepted.",
+    "Replace {{override_text}} in recovery step 6 input_summary with actual human text."
+  ]
+}

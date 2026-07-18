@@ -1,0 +1,166 @@
+{
+  "run_id": "run-golden-braked",
+  "status": "braked",
+  "scenario_id": "db_migration_loop",
+  "goal": "Add a users table migration and expose GET /users.",
+  "steps": [
+    {
+      "id": "step-000",
+      "index": 0,
+      "timestamp": "2026-07-18T12:00:00Z",
+      "type": "thinking",
+      "title": "Plan approach",
+      "action": "plan",
+      "input_summary": "Ship users API with migration",
+      "output_summary": "Will scaffold app, add model, run alembic",
+      "status": "ok",
+      "error_signature": null,
+      "files_touched": []
+    },
+    {
+      "id": "step-001",
+      "index": 1,
+      "timestamp": "2026-07-18T12:00:01Z",
+      "type": "write_file",
+      "title": "Create app.py",
+      "action": "write_file",
+      "input_summary": "app.py",
+      "output_summary": "wrote FastAPI skeleton",
+      "status": "ok",
+      "error_signature": null,
+      "files_touched": ["app.py"]
+    },
+    {
+      "id": "step-002",
+      "index": 2,
+      "timestamp": "2026-07-18T12:00:02Z",
+      "type": "write_file",
+      "title": "Create models.py",
+      "action": "write_file",
+      "input_summary": "models.py",
+      "output_summary": "wrote User model",
+      "status": "ok",
+      "error_signature": null,
+      "files_touched": ["models.py"]
+    },
+    {
+      "id": "step-003",
+      "index": 3,
+      "timestamp": "2026-07-18T12:00:03Z",
+      "type": "tool_call",
+      "title": "Run database migration",
+      "action": "shell",
+      "input_summary": "alembic upgrade head",
+      "output_summary": "ERROR: relation \"users\" already exists",
+      "status": "error",
+      "error_signature": "db.migration.relation_exists",
+      "files_touched": ["migrations/004_users.py"]
+    },
+    {
+      "id": "step-004",
+      "index": 4,
+      "timestamp": "2026-07-18T12:00:04Z",
+      "type": "tool_call",
+      "title": "Retry database migration",
+      "action": "shell",
+      "input_summary": "alembic upgrade head",
+      "output_summary": "ERROR: relation \"users\" already exists",
+      "status": "error",
+      "error_signature": "db.migration.relation_exists",
+      "files_touched": ["migrations/004_users.py"]
+    },
+    {
+      "id": "step-005",
+      "index": 5,
+      "timestamp": "2026-07-18T12:00:05Z",
+      "type": "tool_call",
+      "title": "Retry database migration again",
+      "action": "shell",
+      "input_summary": "alembic upgrade head",
+      "output_summary": "ERROR: relation \"users\" already exists",
+      "status": "error",
+      "error_signature": "db.migration.relation_exists",
+      "files_touched": ["migrations/004_users.py"]
+    }
+  ],
+  "entropy": {
+    "score": 0.82,
+    "threshold": 0.65,
+    "components": {
+      "repeat_error_density": 1.0,
+      "action_loop_density": 0.6,
+      "no_progress": 1.0,
+      "step_budget_pressure": 0.25
+    },
+    "reasons": [
+      "Same error_signature repeated 3 times consecutive",
+      "No successful file progress in last 4 steps"
+    ],
+    "braking": true
+  },
+  "save_state": {
+    "run_id": "run-golden-braked",
+    "status": "braked",
+    "goal": "Migrate database and expose /users API",
+    "worked": [
+      "Created initial FastAPI app",
+      "Added users model"
+    ],
+    "failed": [
+      "DB migration loops on relation_exists"
+    ],
+    "last_good_checkpoint": "step-002",
+    "blocked_on": "Conflicting migration; need drop or revise revision",
+    "recommended_next_actions": [
+      "Don't recreate users; use alter table add column email only",
+      "Inspect existing schema",
+      "Generate additive migration only"
+    ],
+    "context_summary": "Scaffold succeeded. alembic upgrade fails because relation users already exists. Agent retried the same migration three times without progress.",
+    "compress_source": "fixture"
+  },
+  "decision_tree": {
+    "root": {
+      "id": "n0",
+      "label": "Goal: ship users API",
+      "kind": "goal",
+      "children": [
+        {
+          "id": "n1",
+          "label": "Scaffold app",
+          "kind": "success",
+          "children": []
+        },
+        {
+          "id": "n2",
+          "label": "DB migration",
+          "kind": "failure",
+          "children": [
+            {
+              "id": "n3",
+              "label": "Retry same migration (loop ×3)",
+              "kind": "loop",
+              "children": []
+            },
+            {
+              "id": "n4",
+              "label": "Human override required",
+              "kind": "brake",
+              "children": []
+            }
+          ]
+        }
+      ]
+    },
+    "highlight_path": ["n0", "n2", "n3", "n4"]
+  },
+  "voice_alert_text": "Agent is stuck in a migration loop. Human override required.",
+  "overrides": [],
+  "meta": {
+    "worker_mode": "fixture",
+    "compress_source": "fixture",
+    "brake_mode": "rules"
+  },
+  "created_at": "2026-07-18T12:00:00Z",
+  "updated_at": "2026-07-18T12:00:05Z"
+}
