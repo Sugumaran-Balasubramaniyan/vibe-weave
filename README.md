@@ -8,6 +8,7 @@
 <p align="center">
   <a href="https://www.glassbox.sugumaran-balasubramaniyan.com">Live interactive demo</a> ·
   <a href="https://www.glassbox.sugumaran-balasubramaniyan.com/static/vibe-weave-explainer.mp4?v=weave-v2">46-second product video</a> ·
+  <a href="docs/PITCH.md">Pitch</a> ·
   <a href="docs/MISTRAL-VIBE-INTEGRATION-PLAN.md">Future Vibe plan</a>
 </p>
 
@@ -170,6 +171,7 @@ node --check static/weave-v2.js
 
 ## Next reading
 
+- [Pitch: 30-second and judge versions](docs/PITCH.md)
 - [Examples guide](examples/README.md)
 - [Vibe Weave concepts and terminal demo](docs/VIBE-WEAVE.md)
 - [Future Mistral Vibe integration plan](docs/MISTRAL-VIBE-INTEGRATION-PLAN.md)
