@@ -1,0 +1,17 @@
+[
+  {
+    "id": "application", "role": "backend", "goal": "Remove legacy customer field", "files": ["app/customer.py"],
+    "decisions": {"migration.production_drop": "allowed_now"},
+    "public_contracts": ["customer serialization"], "proofs": ["legacy field is absent"]
+  },
+  {
+    "id": "database", "role": "database", "goal": "Write schema migration", "files": ["migrations/042_customer.sql"],
+    "decisions": {"migration.production_drop": "staged_compatibility"},
+    "public_contracts": ["customer table schema"], "proofs": ["existing rows remain readable"]
+  },
+  {
+    "id": "tests", "role": "test", "goal": "Protect migration rollout", "files": ["tests/test_customer_migration.py"],
+    "decisions": {"migration.production_drop": "staged_compatibility"},
+    "public_contracts": ["migration regression"], "proofs": ["old record loads after deployment"]
+  }
+]

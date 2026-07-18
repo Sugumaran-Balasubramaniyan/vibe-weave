@@ -1,0 +1,17 @@
+[
+  {
+    "id": "frontend", "role": "frontend", "goal": "Show invoice export", "files": ["ui/invoice_export.ts"],
+    "decisions": {"invoice_export.authorization": "authenticated_user"},
+    "public_contracts": ["invoice export button"], "proofs": ["export button hides for non-admin"]
+  },
+  {
+    "id": "backend", "role": "backend", "goal": "Add export endpoint", "files": ["api/invoices.py"],
+    "decisions": {"invoice_export.authorization": "admin_only"},
+    "public_contracts": ["GET /invoices/{id}/export"], "proofs": ["non-admin request returns 403"]
+  },
+  {
+    "id": "tests", "role": "test", "goal": "Protect invoice export", "files": ["tests/test_invoice_export.py"],
+    "decisions": {"invoice_export.authorization": "admin_only"},
+    "public_contracts": ["invoice export regression"], "proofs": ["admin export returns 200"]
+  }
+]

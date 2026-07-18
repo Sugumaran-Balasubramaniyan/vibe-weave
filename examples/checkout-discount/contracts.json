@@ -1,0 +1,17 @@
+[
+  {
+    "id": "frontend", "role": "frontend", "goal": "Show checkout savings", "files": ["ui/checkout_summary.tsx"],
+    "decisions": {"discounts.stacking": "allowed"},
+    "public_contracts": ["checkout total display"], "proofs": ["both savings labels render"]
+  },
+  {
+    "id": "pricing", "role": "backend", "goal": "Calculate order total", "files": ["api/pricing.py"],
+    "decisions": {"discounts.stacking": "best_discount_only"},
+    "public_contracts": ["POST /checkout/quote"], "proofs": ["only highest discount is applied"]
+  },
+  {
+    "id": "tests", "role": "test", "goal": "Protect pricing rule", "files": ["tests/test_checkout_discounts.py"],
+    "decisions": {"discounts.stacking": "best_discount_only"},
+    "public_contracts": ["discount regression"], "proofs": ["coupon plus campaign does not stack"]
+  }
+]
