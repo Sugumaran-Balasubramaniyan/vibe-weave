@@ -1,5 +1,7 @@
 # Vibe Weave
 
+> **Status: decommissioned — 2026-07-26.** This project, including its Glass Box integration work, is retained as a historical archive. Do not deploy, extend, or present it as an active Mistral Vibe integration.
+
 <p align="center">
   <strong>Make parallel coding agents agree before they edit.</strong><br>
   A simple coordination layer for Mistral Vibe subagents.
